@@ -1,0 +1,8 @@
+#You should specify your controlled host here. At least, edit it according to your personal needs
+#For the example machine, you can use the following structure
+[ceph_node]
+172.18.0.10 hostname=ceph01
+172.18.0.20 hostname=ceph02
+172.18.0.30 hostname=ceph03
+[web_client]
+172.18.0.10 

@@ -1,0 +1,34 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/env_init
+mark_dir_path: "~/.ansible_task_mark"
+
+#if you need to configrue ntp server,please set it here,replease it with your own ntp server
+ntp_server: "ntp.aliyun.com"
+
+#you can add more necessary tool packages if you need
+necessary_tool_packages:
+  - vim 
+  - wget
+  - net-tools
+  - git 
+  - epel-release
+
+#this install the ceph-release package,if you want to use other ceph version,please change it here
+#as for CentOS 9 Stream ,the ceph versions supported are: 
+#centos-release-ceph-pacific.noarch : Ceph Pacific packages from the CentOS Storage SIG repository
+#centos-release-ceph-quincy.noarch : Ceph Quincy packages from the CentOS Storage SIG repository
+#centos-release-ceph-reef.noarch : Ceph Reef packages from the CentOS Storage SIG repository
+#centos-release-ceph-squid.noarch : Ceph Squid packages from the CentOS Storage SIG repository
+#centos-release-ceph-tentacle.noarch : Ceph Tentacle packages from the CentOS Storage SIG repository
+ceph-release_package: "centos-release-ceph-reef.noarch"
+ceph_packages: 
+  - ceph
+  - ceph-common
+  - ceph-mds
+  - ceph-mon
+  - ceph-osd
+  - ceph-radosgw
+  - ceph-deploy
+
+

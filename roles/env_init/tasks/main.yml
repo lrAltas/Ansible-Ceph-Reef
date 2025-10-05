@@ -1,0 +1,104 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/env_init
+#you don't need to config the mark directory,use the default value
+#mark_dir_path: "~/.ansible_task_mark"
+- name: ensure mark directory exists
+  ansible.builtin.file:
+    path: "{{ mark_dir_path }}"
+    state: directory
+    mode: '0755'
+
+- name: configure hosts file and host name
+  block:
+    - name: configure /etc/hosts file
+      ansible.builtin.template:
+        src: hosts.j2
+        dest: /etc/hosts
+        mode: '0644'
+
+    - name: set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+- name: upgrade all apackages and install necessary tool packages 
+  block:
+    - name: upgrade all packages to latest
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+
+    - name: install necessary tool packages
+      ansible.builtin.dnf:
+        name: "{{ necessary_tool_packages }}"
+        state: present
+        update_cache: yes
+
+    - name: import Storage SIG GPG key
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-SIG-Storage
+
+    - name: install ceph-release package
+      ansible.builtin.dnf:
+        name: "{{ ceph_release_package }}"
+        state: present
+        update_cache: yes
+
+    - name: install ceph packages
+      ansible.builtin.dnf:
+        name: "{{ ceph_packages }}"
+        state: present
+
+- name: Configure SElinux and firewalld
+  block:
+    - name: Configure SElinux to permissive mode pemenently
+      ansible.posix.selinux:
+        policy: targeted
+        state: disabled
+
+    - name: setenforce 0
+      ansible.builtin.command: setenforce 0
+      when: ansible_facts.selinux.status == "enabled"
+      ignore_errors: yes
+
+    - name: stop and disable firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+- name: configure NTP service
+  block:
+    - name: install chrony
+      ansible.builtin.dnf:
+        name: chrony
+        state: latest
+
+    - name: configure chrony.conf
+      ansible.builtin.template:
+        src: chrony.conf.j2
+        dest: /etc/chrony.conf
+        mode: '0644'
+
+    - name: enable and start chronyd service
+      ansible.builtin.service:
+        name: chronyd
+        state: started
+        enabled: yes
+
+    - name: configure timedatectl to use NTP
+      ansible.builtin.command: timedatectl set-ntp yes
+      
+    - name: print current time status
+      ansible.builtin.command: timedatectl status
+      register: timedatectl_status
+
+    - name: show current time status
+      ansible.builtin.debug:
+        var: timedatectl_status.stdout_lines
+
+
+
+
