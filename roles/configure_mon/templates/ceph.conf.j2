@@ -1,0 +1,17 @@
+#添加以下内容
+[global]
+fsid={{ cluster_uuid.content }}
+mon_initial_members={{ groups['mons'] | join(',') }}
+mon_host={{ groups['mons'] | map('extract', hostvars, ['ansible_host']) | join(',') }}
+public_network={{ configure_mon_public_network }}
+auth_cluster_required=cephx
+auth_service_required=cephx
+auth_client_required=cephx
+osd_pool_default_size=3
+osd_pool_default_min_size=2
+osd_pool_default_pg_num=128
+osd_pool_default_pgp_num=128
+storage_type=bluestore
+osd_objectstore=bluestore
+osd_mkfs_type=xfs
+bluestore_block_size=5628755968

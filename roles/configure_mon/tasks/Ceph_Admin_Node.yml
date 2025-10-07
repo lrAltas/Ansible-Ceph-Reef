@@ -1,0 +1,97 @@
+---
+- name: Ensure Mark Directory Exists
+  ansible.builtin.file:
+    path: "{{ mark_dir_path }}"
+    state: directory
+    mode: '0755'
+
+# Generate the UUID for the Ceph cluster
+- name: Generate The UUID For The Ceph Cluster
+  ansible.builtin.command: "uuidgen > {{ configure_mon_uuid_path }}"
+  args:
+    creates: "{{ configure_mon_uuid_path }}"
+
+# This task will read the UUID as a string value from the file
+- name: Read The UUID From File
+  ansible.builtin.set_fact:
+    configure_mon_fsid: "{{ lookup('ansible.builtin.file', configure_mon_uuid_path) | trim }}"
+
+# Create the Ceph configuration file with the generated UUID
+- name: Create the Ceph Configuration File
+  ansible.builtin.template:
+    src: "templates/ceph.conf.j2"
+    dest: "{{ configure_mon_ceph_config_path }}"
+    mode: '0644'
+
+- name: Generate monitor and admin keyrings
+  block:
+    - name: Generate Monitor Keyring
+      ansible.builtin.command: "ceph-authtool --create-keyring {{ configure_mon_mon_keyring_path }} --gen-key -n mon. --cap mon 'allow *'"
+      args:
+        creates: "{{ configure_mon_mon_keyring_path }}"
+
+    - name: Generate Admin Keyring
+      ansible.builtin.command: "ceph-authtool --create-keyring {{ configure_mon_admin_keyring_path }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'"
+      args:
+        creates: "{{ configure_mon_admin_keyring_path }}"
+
+    - name: Generate OSD Keyring
+      ansible.builtin.command: "ceph-authtool --create-keyring {{ configure_mon_osd_keyring_path }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'"
+      args:
+        creates: "{{ configure_mon_osd_keyring_path }}"
+
+    - name: Import admin and osd keyrings into monitor keyring
+      ansible.builtin.command: >
+        ceph-authtool {{ configure_mon_mon_keyring_path }}
+        --import-keyring {{ item }}
+      loop:
+        - "{{ configure_mon_admin_keyring_path }}"
+        - "{{ configure_mon_osd_keyring_path }}"
+      args:
+        creates: "{{ mark_dir_path }}/import_admin_and_bootstrap_osd_keyrings.mark"
+
+    - name: Set ownership for monitor keyring
+      ansible.builtin.file:
+        path: "{{ configure_mon_mon_keyring_path }}"
+        owner: ceph
+        group: ceph
+        mode: '0600'
+
+    - name: Make Mark File of import OSD and Admin keyrings to monitor keyring
+      ansible.builtin.file:
+        path: "{{ mark_dir_path }}/import_admin_and_bootstrap_osd_keyrings.mark"
+
+- name: Generate monmap
+  block:
+    - name: Generate monmap with monmaptool
+      ansible.builtin.command: >
+        monmaptool --create
+        {% for host in groups['mons'] %}
+        --add {{ host }} {{ hostvars[host]['ansible_host'] }}
+        {% endfor %}
+        --fsid {{ configure_mon_fsid }}
+        {{ configure_mon_monmap_path }}
+      args:
+        creates: "{{ mark_dir_path }}/Generate_monmap.mark"
+
+    - name: Make Mark File of Generate monmap with monmaptool
+      ansible.builtin.file:
+        path: "{{ mark_dir_path }}/generate_monmap.mark"
+
+# The Files is actually ceph.conf, ceph.mon.keyring, ceph.client.admin.keyring, monmap
+- name: Copy Admin node's Files to other node's
+  block:
+    - name: Fetch all necessary files to Ansible-Controller node
+      ansible.builtin.fetch:
+        src: "{{ item }}"
+        dest: "files/ceph_admin_node/"
+        flat: yes
+      loop:
+        - "{{ configure_mon_ceph_config_path }}"
+        - "{{ configure_mon_mon_keyring_path }}"
+        - "{{ configure_mon_admin_keyring_path }}"
+        - "{{ configure_mon_monmap_path }}"
+      delegate_to: "{{ groups['admin_node'][0] }}"
+      run_once: true
+
+

@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_mon
+# this playbook will run tasks according to the node type
+- name: Run MON on Admin_Node
+  ansible.builtin.import_tasks: Ceph_Admin_Node.yml
+  when: "'Admin_Node' in group_names"
+
+- name: RUN on Normal_Node
+  ansible.builtin.import_tasks: Ceph_Normal_Node.yml
+  when: "'Normal_Node' in group_names"

@@ -1,8 +1,14 @@
 #You should specify your controlled host here. At least, edit it according to your personal needs
 #For the example machine, you can use the following structure
+[admin_node]
+172.18.0.10
 [ceph_node]
-172.18.0.10 hostname=ceph01
-172.18.0.20 hostname=ceph02
-172.18.0.30 hostname=ceph03
+172.18.0.20
 [web_client]
-172.18.0.10 
+172.18.0.10
+
+
+[mons]
+ceph01 ansible_host=172.18.0.10
+ceph02 ansible_host=172.18.0.20
+ceph03 ansible_host=172.18.0.30

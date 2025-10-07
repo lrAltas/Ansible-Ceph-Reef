@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_mon
+configure_mon_mark_dir_path: "~/.ansible_task_mark"
+# this is the path where the uuid will be stored
+configure_mon_uuid_path: "~/.uuidkey"
+# this is the path where the ceph config file will be stored
+configure_mon_ceph_config_path: /etc/ceph/ceph.conf
+
+# keyring paths
+configure_mon_mon_keyring_path: /tmp/ceph.mon.keyring
+configure_mon_admin_keyring_path: /tmp/ceph.client.admin.keyring
+configure_mon_osd_keyring_path: /var/lib/ceph/bootstrap-osd/ceph.keyring
+
+# bootstrap osd keyring path on mon node
+configure_mon_bootstrap_osd_keyring_path: /var/lib/ceph/bootstrap-osd/ceph.keyring
+
+# monmap path
+configure_mon_monmap_path: /tmp/monmap
+
+# ceph.conf template variables
+configure_mon_public_network: "172.18.0.0/24"
