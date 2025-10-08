@@ -1,0 +1,47 @@
+---
+- name: Ensure Mark Directory Exists
+  ansible.builtin.file:
+    path: "{{ mark_dir_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy Monitor Keyring To Gluster Node
+  ansible.builtin.copy:
+    src: "{{ item.src}}"
+    dest: "{{ item.dest }}"
+    mode: '0600'
+  loop:
+    - { src: "{{ configure_mon_local_keyring_file }}", dest: "{{ configure_mon_mon_keyring_path }}" }
+    - { src: "{{ configure_mon_local_admin_keyring_file }}", dest: "/etc/ceph/ceph.client.admin.keyring" }
+    - { src: "{{ configure_mon_local_monmap_file }}", dest: "{{ configure_mon_monmap_path }}" }
+
+
+# Initialize the monitor daemon on the Gluster node
+    - name: Initialize the monitor daemon on the Gluster node
+      ansible.builtin.command: >
+        ceph-mon --mkfs -i {{ inventory_hostname }}
+        --monmap {{ configure_mon_monmap_path }}
+        --keyring {{ configure_mon_mon_keyring_path }}
+      args:
+        creates: "{{ configure_mon_mark_dir_path }}/initialize_monitor.mark"
+
+    - name: Make Mark File of Initialize the monitor daemon on the Gluster node
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_dir_path }}/initialize_monitor.mark"
+        state: touch
+        group: root
+        owner: root
+        mode: '0644'
+
+    - name: Set ownership of MON directory
+      ansible.builtin.file:
+        path: /var/lib/ceph/mon/ceph-{{ inventory_hostname }}
+        owner: ceph
+        group: ceph
+        recurse: true
+
+    - name: Start and enable the ceph-mon service on the Gluster node
+      ansible.builtin.systemd:
+        name: ceph-mon@{{ inventory_hostname }}
+        state: started
+        enabled: true

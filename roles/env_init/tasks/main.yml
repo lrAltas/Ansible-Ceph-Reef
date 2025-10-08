@@ -1,51 +1,51 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # tasks file for roles/env_init
-#you don't need to config the mark directory,use the default value
-#mark_dir_path: "~/.ansible_task_mark"
-- name: ensure mark directory exists
+# you don't need to config the mark directory,use the default value
+# mark_dir_path: "~/.ansible_task_mark"
+- name: Ensure mark directory exists
   ansible.builtin.file:
     path: "{{ mark_dir_path }}"
     state: directory
     mode: '0755'
 
-- name: configure hosts file and host name
+- name: Configure hosts file and host name
   block:
-    - name: configure /etc/hosts file
+    - name: Configure /etc/hosts file
       ansible.builtin.template:
         src: hosts.j2
         dest: /etc/hosts
         mode: '0644'
 
-    - name: set hostname
+    - name: Set hostname
       ansible.builtin.hostname:
         name: "{{ inventory_hostname }}"
 
-- name: upgrade all apackages and install necessary tool packages 
+- name: Upgrade all packages and install necessary tool packages
   block:
-    - name: upgrade all packages to latest
+    - name: Upgrade all packages
       ansible.builtin.dnf:
         name: "*"
-        state: latest
+        state: present
 
-    - name: install necessary tool packages
+    - name: Install necessary tool packages
       ansible.builtin.dnf:
         name: "{{ necessary_tool_packages }}"
         state: present
-        update_cache: yes
+        update_cache: true
 
-    - name: import Storage SIG GPG key
+    - name: Import Storage SIG GPG key
       ansible.builtin.rpm_key:
         state: present
         key: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-SIG-Storage
 
-    - name: install ceph-release package
+    - name: Install ceph-release package
       ansible.builtin.dnf:
         name: "{{ ceph_release_package }}"
         state: present
-        update_cache: yes
+        update_cache: true
 
-    - name: install ceph packages
+    - name: Install Ceph packages
       ansible.builtin.dnf:
         name: "{{ ceph_packages }}"
         state: present
@@ -57,49 +57,46 @@
         policy: targeted
         state: disabled
 
-    - name: setenforce 0
-      ansible.builtin.command: setenforce 0
-      when: ansible_facts.selinux.status == "enabled"
-      ignore_errors: yes
+    - name: Set SELinux to permissive mode if enforcing
+      ansible.posix.selinux:
+        policy: targeted
+        state: permissive
+      when: ansible_selinux.status == "Enforcing"
 
-    - name: stop and disable firewalld
+    - name: Stop and disable firewalld
       ansible.builtin.service:
         name: firewalld
         state: stopped
-        enabled: no
-      ignore_errors: yes
+        enabled: false
+      failed_when: false
 
-- name: configure NTP service
+- name: Configure NTP service
   block:
-    - name: install chrony
+    - name: Install Chrony
       ansible.builtin.dnf:
         name: chrony
-        state: latest
+        state: present
 
-    - name: configure chrony.conf
+    - name: Configure chrony.conf
       ansible.builtin.template:
         src: chrony.conf.j2
         dest: /etc/chrony.conf
         mode: '0644'
 
-    - name: enable and start chronyd service
+    - name: Enable and Start Chronyd Service
       ansible.builtin.service:
         name: chronyd
         state: started
-        enabled: yes
+        enabled: true
 
-    - name: configure timedatectl to use NTP
+    - name: Enable set_ntp_yes in timedatectl
       ansible.builtin.command: timedatectl set-ntp yes
-      
-    - name: print current time status
+
+    - name: Print current time status
       ansible.builtin.command: timedatectl status
-      register: timedatectl_status
+      register: env_init_timedatectl_status
+      changed_when: false
 
-    - name: show current time status
+    - name: Show current time status
       ansible.builtin.debug:
-        var: timedatectl_status.stdout_lines
-
-
-
-
-        
+        var: env_init_timedatectl_status.stdout_lines

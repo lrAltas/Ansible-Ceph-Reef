@@ -1,13 +1,10 @@
 #You should specify your controlled host here. At least, edit it according to your personal needs
 #For the example machine, you can use the following structure
-[admin_node]
-172.18.0.10
-[ceph_node]
-172.18.0.20
-[web_client]
-172.18.0.10
-
-
+[Admin_Node]
+ceph01 ansible_host=172.18.0.10
+[Gluster_Node]
+ceph02 ansible_host=172.18.0.20
+ceph03 ansible_host=172.18.0.30
 [mons]
 ceph01 ansible_host=172.18.0.10
 ceph02 ansible_host=172.18.0.20

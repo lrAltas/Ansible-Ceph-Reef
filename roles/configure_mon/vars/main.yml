@@ -20,3 +20,9 @@ configure_mon_monmap_path: /tmp/monmap
 
 # ceph.conf template variables
 configure_mon_public_network: "172.18.0.0/24"
+
+# these files are gathered from admin node to be copied to other nodes, you don't need to change them
+configure_mon_local_keyring_file: "files/ceph_admin_node/ceph.mon.keyring"
+configure_mon_local_ceph_conf_file: "files/ceph_admin_node/ceph.conf"
+configure_mon_local_admin_keyring_file: "files/ceph_admin_node/ceph.client.admin.keyring"
+configure_mon_local_monmap_file: "files/ceph_admin_node/monmap"

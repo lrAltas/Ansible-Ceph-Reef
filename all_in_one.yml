@@ -1,0 +1,14 @@
+# This playbook is test for setting up a Ceph Monitor and Admin Node
+# SPDX-License-Identifier: MIT-0
+---
+- name: Env Initialization
+  hosts: all
+  serial: 1
+  roles:
+    - env_init
+
+- name: Deploy Ceph Monitor and Admin Node
+  hosts: all
+  serial: 2
+  roles:
+    - configure_mon

@@ -31,12 +31,23 @@
         creates: "{{ configure_mon_mon_keyring_path }}"
 
     - name: Generate Admin Keyring
-      ansible.builtin.command: "ceph-authtool --create-keyring {{ configure_mon_admin_keyring_path }} --gen-key -n client.admin --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow *' --cap mgr 'allow *'"
+      ansible.builtin.command: >
+        ceph-authtool \
+        --create-keyring {{ configure_mon_admin_keyring_path }} \
+        --gen-key -n client.admin \
+        --cap mon 'allow *' \
+        --cap osd 'allow *' \
+        --cap mds 'allow *' \
+        --cap mgr 'allow *'
       args:
         creates: "{{ configure_mon_admin_keyring_path }}"
 
     - name: Generate OSD Keyring
-      ansible.builtin.command: "ceph-authtool --create-keyring {{ configure_mon_osd_keyring_path }} --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd' --cap mgr 'allow r'"
+      ansible.builtin.command: >
+        ceph-authtool
+        --create-keyring {{ configure_mon_osd_keyring_path }}
+        --gen-key -n client.bootstrap-osd --cap mon 'profile bootstrap-osd'
+        --cap mgr 'allow r'
       args:
         creates: "{{ configure_mon_osd_keyring_path }}"
 
@@ -77,15 +88,19 @@
     - name: Make Mark File of Generate monmap with monmaptool
       ansible.builtin.file:
         path: "{{ mark_dir_path }}/generate_monmap.mark"
+        state: touch
+        group: root
+        owner: root
+        mode: '0644'
 
 # The Files is actually ceph.conf, ceph.mon.keyring, ceph.client.admin.keyring, monmap
 - name: Copy Admin node's Files to other node's
   block:
     - name: Fetch all necessary files to Ansible-Controller node
       ansible.builtin.fetch:
-        src: "{{ item }}"
+        src: "{{ Item }}"
         dest: "files/ceph_admin_node/"
-        flat: yes
+        flat: true
       loop:
         - "{{ configure_mon_ceph_config_path }}"
         - "{{ configure_mon_mon_keyring_path }}"
@@ -93,5 +108,47 @@
         - "{{ configure_mon_monmap_path }}"
       delegate_to: "{{ groups['admin_node'][0] }}"
       run_once: true
+
+- name: Import Gluster_Ship to Monmap
+  block:
+    - name: Create directory for ceph-mon on Admin node
+      ansible.builtin.file:
+        path: "/var/lib/ceph/mon/ceph-{{ inventory_hostname }}"
+        state: directory
+        owner: ceph
+        group: ceph
+        mode: '0755'
+
+# Initialize the monitor daemon on the Admin node
+    - name: Initialize the monitor daemon on the Admin node
+      ansible.builtin.command: >
+        ceph-mon --mkfs -i {{ inventory_hostname }}
+        --monmap {{ configure_mon_monmap_path }}
+        --keyring {{ configure_mon_mon_keyring_path }}
+      args:
+        creates: "{{ configure_mon_mark_dir_path }}/initialize_monitor.mark"
+
+    - name: Make Mark File of Initialize the monitor daemon on the Admin node
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_dir_path }}/initialize_monitor.mark"
+        state: touch
+        group: root
+        owner: root
+        mode: '0644'
+
+    - name: Set ownership of MON directory
+      ansible.builtin.file:
+        path: /var/lib/ceph/mon/ceph-{{ inventory_hostname }}
+        owner: ceph
+        group: ceph
+        recurse: true
+
+    - name: Start and enable the ceph-mon service on the Admin node
+      ansible.builtin.systemd:
+        name: ceph-mon@{{ inventory_hostname }}
+        state: started
+        enabled: true
+
+
 
 

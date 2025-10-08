@@ -6,6 +6,6 @@
   ansible.builtin.import_tasks: Ceph_Admin_Node.yml
   when: "'Admin_Node' in group_names"
 
-- name: RUN on Normal_Node
-  ansible.builtin.import_tasks: Ceph_Normal_Node.yml
-  when: "'Normal_Node' in group_names"
+- name: RUN on Gluster_Node
+  ansible.builtin.import_tasks: Ceph_Gluster_Node.yml
+  when: "'Gluster_Node' in group_names"
