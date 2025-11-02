@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/env_init
+- name: Check if env_init tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ env_init_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if env_init tasks are already run
+      ansible.builtin.stat:
+        path: "{{ env_init_mark_files_path.env_init_success }}"
+      register: env_init_mark_file
+
+    - name: If the tasks has success,skip env_init tasks
+      ansible.builtin.meta: end_role
+      when: env_init_mark_file.stat.exists
+
+# 这块是配置主机上的hosts文件，添加主机名和IP地址的映射
+# This block configures the hosts file on the host, adding mappings of hostnames to IP
+- name: Configure add host_namppings to hosts file
+  ansible.builtin.blockinfile:
+    path: "{{ env_init_hosts_path }}"
+    block: |
+      {% for item in env_init_host_mappings %}
+      {{ item.ip }} {{ item.name }}
+      {% endfor %}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+- name: Stop filrewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+    enabled: false
+
+- name: Configure NTP Service
+  block:
+    - name: Ensure NTP Service is installed
+      ansible.builtin.dnf:
+        name: chrony
+        state: present
+
+    - name: Deploy Chrony Configuration
+      ansible.builtin.template:
+        src: "{{ env_init_chrony_conf_template }}"
+        dest: "{{ env_init_chrony_conf_path }}"
+        mode: '0644'
+
+    - name: Start and enable chronyd
+      ansible.builtin.service:
+        name: chronyd
+        state: restarted
+        enabled: true
+
+    - name: Configrue Timedate to use NTP
+      ansible.builtin.command:
+        cmd: timedatectl set-ntp true
+      changed_when: false
+
+    - name: Collect NTP Status
+      ansible.builtin.command:
+        cmd: timedatectl status
+      register: env_init_timedate_status
+      changed_when: false
+
+    - name: Show NTP Status
+      ansible.builtin.debug:
+        var: env_init_timedate_status
+
+- name: Install Necessary Pakcages
+  block:
+    - name: Install Ceph release Pakcages
+      ansible.builtin.dnf:
+        name: "{{ env_init_ceph_release_pakcages }}"
+        state: present
+
+    - name: Install Ceph Pakcages
+      ansible.builtin.dnf:
+        name: "{{ env_init_ceph_pakcages }}"
+        state: present
+
+- name: Create mark file to indicate env_init tasks are already run
+  ansible.builtin.file:
+    path: "{{ mark_dir_path }}/env_init.mark"
+    state: touch
+    mode: '0644'

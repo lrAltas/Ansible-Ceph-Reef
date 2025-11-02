@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_mon
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_mon tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mark_files_path.follower_configure_mon_success }}"
+      register: configure_mon_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_mon_mark_file.stat.exists
+
+- name: Import glusrter relationship from monmap
+  block:
+    - name: Check if import glusrter relationship from monmap has been done
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mark_files_path.import_gluster_relationship_from_monmap }}"
+      register: configure_mon_import_gluster_relationship_from_monmap
+
+    - name: Create Mon dir
+      ansible.builtin.file:
+        path: "{{ configure_mon_monitor_dir_path }}"
+        state: directory
+        mode: '0755'
+      become: true
+      become_user: ceph
+      when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
+
+    - name: Import glusrter relationship from monmap
+      ansible.builtin.command: >
+        ceph-mon --mkfs
+        --monmap {{ configure_mon_role_files_path.monmap }}
+        --keyring {{ configure_mon_role_files_path.mon_keyring }}
+      changed_when: false
+      when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
+
+    - name: Change target file mode
+      ansible.builtin.file:
+        path: /var/lib/ceph
+        owner: ceph
+        group: ceph
+        recurse: true
+
+    - name: Create mark file to indicate import glusrter relationship from monmap has been done
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_files_path.import_gluster_relationship_from_monmap }}"
+        state: touch
+        mode: '0644'
+
+- name: Ensure Mon service running and print service status
+  block:
+    - name: Ensure Mon service running
+      ansible.builtin.service:
+        name: "ceph-mon@{{ inventory_hostname }}"
+        state: started
+        enabled: true
+
+    - name: Print Mon service status
+      ansible.builtin.command: >
+        systemctl status "ceph-mon@{{ inventory_hostname }}.service"
+      changed_when: false
+      register: configure_mon_service_status
+
+    - name: Show Mon service status
+      ansible.builtin.debug:
+        var: configure_mon_service_status.stdout
+
+- name: Create mark file to indicate leader tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_mon_mark_files_path.follower_configure_mon_success }}"
+    state: touch
+    mode: '0644'

@@ -1,0 +1,212 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_mon
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_mon tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mark_files_path.leader_configure_mon_success }}"
+      register: configure_mon_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_mon_mark_file.stat.exists
+
+- name: Ensure keyring directory exists
+  ansible.builtin.file:
+    path: "{{ configure_mon_mon_keyring_dir_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Generate fsid
+  block:
+    - name: Generate Fsid
+      community.general.uuid:
+      register: configure_mon_fsid
+
+    - name: Write fsid into dest file
+      ansible.builtin.copy:
+        content: "{{ configure_mon_fsid.uuid }}"
+        dest: "{{ configure_mon_fsid_path }}"
+        mode: '0644'
+
+- name: Deploy Ceph config file from templates
+  ansible.builtin.template:
+    src: "{{ configure_mon_ceph_conf_template_path }}"
+    dest: "{{ configure_mon_ceph_conf_path }}"
+    mode: '0644'
+
+- name: Generate Mon keyring
+  block:
+    - name: Check if mon keyring exists
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mon_keyring_files_path.mon_keyring }}"
+      register: configure_mon_mon_keyring
+
+    - name: Generate Mon keyring
+      ansible.builtin.command:
+        cmd: ceph-authtool --create-keyring "{{ configure_mon_mon_keyring_files_path.mon_keyring }}" --gen-key -n mon. --cap mon 'allow *'
+      changed_when: false
+      when: not configure_mon_mon_keyring.stat.exists
+
+- name: Generate admin keyring
+  block:
+    - name: Check if admin keyring exists
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mon_keyring_files_path.admin_keyring }}"
+      register: configure_mon_admin_keyring
+
+    - name: Generate admin keyring
+      ansible.builtin.command: >
+        ceph-authtool --create-keyring "{{ configure_mon_mon_keyring_files_path.admin_keyring }}"
+        --gen-key -n client.admin
+        --cap mon 'allow *'
+        --cap osd 'allow *'
+        --cap mds 'allow *'
+        --cap mgr 'allow *'
+      changed_when: false
+      when: not configure_mon_admin_keyring.stat.exists
+
+- name: Generate OSD bootstrap key
+  block:
+    - name: Check if OSD bootstrap key exists
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mon_keyring_files_path.osd_bootstrap_key }}"
+      register: configure_mon_osd_bootstrap_key
+
+    - name: Generate OSD bootstrap key
+      ansible.builtin.command: >
+        ceph-authtool --create-keyring "{{ configure_mon_mon_keyring_files_path.osd_bootstrap_key }}"
+        --gen-key -n client.bootstrap-osd
+        --cap mon 'profile bootstrap-osd'
+        --cap mgr 'allow r'
+      changed_when: false
+      when: not configure_mon_osd_bootstrap_key.stat.exists
+
+- name: Import Admin and OSD keyring into mon keyring
+  block:
+    - name: Check if import Admin and OSD keyring into mon keyring has been done
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mark_files_path.import_ad_osd_into_mon }}"
+      register: configure_mon_import_ad_osd_into_mon
+
+    - name: Import Admin keyring into mon keyring
+      ansible.builtin.command: >
+        ceph-authtool {{ configure_mon_mon_keyring_files_path.mon_keyring }}
+        --import-keyring {{ item }}
+      loop:
+        - "{{ configure_mon_mon_keyring_files_path.admin_keyring }}"
+        - "{{ configure_mon_mon_keyring_files_path.osd_bootstrap_key }}"
+      changed_when: false
+      when: not configure_mon_import_ad_osd_into_mon.stat.exists
+
+    - name: Create mark file to indicate import Admin and OSD keyring into mon keyring has been done
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_files_path.import_ad_osd_into_mon }}"
+        state: touch
+        mode: '0644'
+      when: not configure_mon_import_ad_osd_into_mon.stat.exists
+
+    - name: Change target file mode
+      ansible.builtin.file:
+        path: "{{ configure_mon_mon_keyring_files_path.mon_keyring }}"
+        owner: ceph
+        group: ceph
+
+- name: Generate Monmap topology diagram
+  block:
+    - name: Check if monmap topology diagram exists
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mon_keyring_files_path.monmap }}"
+      register: configure_mon_monmap
+
+    - name: Generate Monmap topology diagram
+      ansible.builtin.command: >
+        monmaptool --create
+        {% for host in groups['mons'] %}
+        --add {{ host }} {{ hostvars[host].ansible_host }}
+        {% endfor %}
+        --fsid {{ lookup('file', configure_mon_fsid_path) | trim }}
+        /tmp/monmap
+      changed_when: false
+      when: not configure_mon_monmap.stat.exists
+
+- name: Deploy necessary files to target hosts
+  block:
+    - name: Fetch keyrings and monmap from ceph01
+      ansible.builtin.fetch:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        flat: true
+      loop:
+        - { src: "{{ configure_mon_mon_keyring_files_path.mon_keyring }}", dest: "{{ configure_mon_role_files_path.mon_keyring }}" }
+        - { src: "{{ configure_mon_mon_keyring_files_path.admin_keyring }}", dest: "{{ configure_mon_role_files_path.admin_keyring }}" }
+        - { src: "{{ configure_mon_mon_keyring_files_path.monmap }}", dest: "{{ configure_mon_role_files_path.monmap }}" }
+        - { src: "{{ configure_mon_ceph_conf_path }}", dest: "{{ configure_mon_role_files_path.ceph_conf }}" }
+
+- name: Import glusrter relationship from monmap
+  block:
+    - name: Check if import glusrter relationship from monmap has been done
+      ansible.builtin.stat:
+        path: "{{ configure_mon_mark_files_path.import_gluster_relationship_from_monmap }}"
+      register: configure_mon_import_gluster_relationship_from_monmap
+
+    - name: Create Mon dir
+      ansible.builtin.file:
+        path: "{{ configure_mon_monitor_dir_path }}"
+        state: directory
+        mode: '0755'
+      become: true
+      become_user: ceph
+      when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
+
+    - name: Import glusrter relationship from monmap
+      ansible.builtin.command: >
+        ceph-mon --mkfs
+        --monmap {{ configure_mon_role_files_path.monmap }}
+        --keyring {{ configure_mon_role_files_path.mon_keyring }}
+      changed_when: false
+      when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
+
+    - name: Change target file mode
+      ansible.builtin.file:
+        path: /var/lib/ceph
+        owner: ceph
+        group: ceph
+        recurse: true
+
+    - name: Create mark file to indicate import glusrter relationship from monmap has been done
+      ansible.builtin.file:
+        path: "{{ configure_mon_mark_files_path.import_gluster_relationship_from_monmap }}"
+        state: touch
+        mode: '0644'
+
+- name: Ensure Mon service running and print service status
+  block:
+    - name: Ensure Mon service running
+      ansible.builtin.service:
+        name: "ceph-mon@{{ inventory_hostname }}"
+        state: started
+        enabled: true
+
+    - name: Print Mon service status
+      ansible.builtin.command: >
+        systemctl status "ceph-mon@{{ inventory_hostname }}.service"
+      changed_when: false
+      register: configure_mon_service_status
+
+    - name: Show Mon service status
+      ansible.builtin.debug:
+        var: configure_mon_service_status.stdout
+
+- name: Create mark file to indicate leader tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_mon_mark_files_path.leader_configure_mon_success }}"
+    state: touch
+    mode: '0644'

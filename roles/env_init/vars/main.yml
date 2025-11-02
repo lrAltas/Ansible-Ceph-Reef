@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/env_init
+env_init_mark_dir_path: "/root/.mark"
+env_init_mark_files_path:
+  env_init_success: "{{ env_init_mark_dir_path }}/env_init_success.mark"
+env_init_hosts_path: "/etc/hosts"
+env_init_host_mappings:
+  - name: ceph01
+    ip: 10.1.10.100
+  - name: ceph02
+    ip: 10.1.10.101
+  - name: ceph03
+    ip: 10.1.10.102
+
+env_init_chrony_conf_template: templates/chrony.conf.j2
+env_init_chrony_conf_path: "/etc/chrony.conf"
+
+env_init_ceph_release_pakcages:
+  - centos-release-ceph-reef
+
+env_init_ceph_packages:
+  - ceph
+  - epel-release

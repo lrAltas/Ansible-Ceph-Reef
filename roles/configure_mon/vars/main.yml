@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_mon
+configure_mon_mark_dir_path: "/root/.mark"
+configure_mon_mark_files_path:
+  leader_configure_mon_success: "{{ configure_mon_mark_dir_path }}/configure_mon_success.mark"
+  follower_configure_mon_success: "{{ configure_mon_mark_dir_path }}/follower_configure_mon_success.mark"
+  keyring_generated: "{{ configure_mon_mark_dir_path }}/keyring_generated.mark"
+  import_ad_osd_into_mon: "{{ configure_mon_mark_dir_path }}/import_ad_osd_into_mon_success.mark"
+  passwordless_ssh: "{{ configure_mon_mark_dir_path }}/passwordless_ssh_generated.mark"
+  import_gluster_relationship_from_monmap: "{{ configure_mon_mark_dir_path }}/import_gluster_relationship_from_monmap_success.mark"
+
+configure_mon_fsid_path: "/etc/ceph/.ceph.fsid"
+
+configure_mon_ceph_conf_template_path: templates/ceph.conf.j2
+configure_mon_ceph_conf_path: "/etc/ceph/ceph.conf"
+
+configure_mon_mon_keyring_dir_path: "/etc/ceph/.ceph_keyring"
+
+configure_mon_mon_keyring_files_path:
+  mon_keyring: "{{ configure_mon_mon_keyring_dir_path }}/ceph.mon.keyring"
+  admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
+  osd_bootstrap_key: "/var/lib/ceph/bootstrap-osd/ceph.keyring"
+  monmap: "{{ configure_mon_mon_keyring_dir_path }}/monmap"
+
+# 这里改为你的ansible节点上的项目路径
+configure_mon_role_dir_path: "/home/lraltas/project/code_project/Ansible-Ceph-Reef/roles/configure_mon"
+configure_mon_role_files_path:
+  mon_keyring: "{{ configure_mon_role_dir_path }}/files/ceph.mon.keyring"
+  admin_keyring: "{{ configure_mon_role_dir_path }}/files/ceph.client.admin.keyring"
+  monmap: "{{ configure_mon_role_dir_path }}/files/monmap"
+  ceph_conf: "{{ configure_mon_role_dir_path }}/files/ceph.conf"
+
+configure_mon_monitor_dir_path: "/var/lib/ceph/mon/ceph-{{ inventory_hostname }}"
