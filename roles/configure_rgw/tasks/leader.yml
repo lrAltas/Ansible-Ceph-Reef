@@ -1,0 +1,93 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_rgw
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_rgw_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_rgw tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_rgw_mark_files_path.configure_rgw_leader_success }}"
+      register: configure_rgw_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_rgw_mark_file.stat.exists
+
+- name: Install rgw packages
+  ansible.builtin.dnf:
+    name: "{{ configure_rgw_packages }}"
+    state: present
+
+- name: Create RGW keyrings
+  block:
+    - name: Check if RGW keyrings exists
+      ansible.builtin.stat:
+        path: "{{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}"
+      register: configure_rgw_rgw_keyring
+
+    - name: Create RGW keyrings
+      ansible.builtin.shell: >
+        ceph auth  get-or-create client.rgw.{{ item }} osd 'allow rwx' mon 'allow rwx' >> {{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}
+      changed_when: false
+      when: not configure_rgw_rgw_keyring.stat.exists
+      loop: "{{ group['mds'] }}"
+
+    - name: Change privilege
+      ansible.builtin.file:
+        path: "{{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}"
+        owner: ceph
+        group: ceph
+
+- name: Append RGW client config
+  ansible.builtin.blockinfile:
+    path: /etc/ceph/ceph.conf
+    marker: "# {mark} RGW config for {{ item }}"
+    block: |
+      [client.rgw.{{ item }}]
+      host = {{ item }}
+      keyring = /etc/ceph/ceph.client.radosgw.keyring
+      log file = /var/log/radosgw/client.radosgw.gateway.log
+      rgw frontends = civetweb port={{ hostvars[item].ansible_host }}:8080
+    insertafter: EOF
+  loop: "{{ groups['rgw'] }}"
+
+- name: Fetch RGW Keyrings and ceph.conf
+  block:
+    - name: Fetch ceph.conf
+      ansible.builtin.fetch:
+        src: "{{ configure_rgw_ceph_conf_path }}"
+        dest: "{{ configure_rgw_role_files_path.ceph_conf }}"
+        flat: true
+
+    - name: Fetch RGW keyring
+      ansible.builtin.fetch:
+        src: "{{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}"
+        dest: "{{ configure_rgw_role_files_path.rgw_keyring }}"
+        flat: true
+
+- name: Create log file directory
+  ansible.builtin.file:
+    path: "{{ configure_rgw_log_file_dir_path }}"
+    state: directory
+    mode: '0755'
+  become: true
+  become_user: ceph
+
+- name: Start and ensure rgw service running
+  block:
+    - name: Start and ensure rgw service running
+      ansible.builtin.service:
+        name: "ceph-radosgw@rgw.{{ inventory_hostname }}"
+        state: started
+        enabled: true
+
+- name: Create mark file to indicate tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_rgw_mark_files_path.configure_rgw_leader_success }}"
+    state: touch
+    mode: '0644'

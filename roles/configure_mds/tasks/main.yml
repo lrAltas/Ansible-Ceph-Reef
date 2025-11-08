@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_mds
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_mds_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_mds tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_mds_mark_files_path.configure_mds_success }}"
+      register: configure_mds_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_mds_mark_file.stat.exists
+
+- name: Ensure mds dir exists
+  ansible.builtin.file:
+    path: "{{ configure_mds_mds_dir_path }}"
+    state: directory
+    mode: '0755'
+  become: true
+  become_user: ceph
+
+- name: Generate mds keyring
+  block:
+    - name: Check if mds keyring exists
+      ansible.builtin.stat:
+        path: "{{ configure_mds_mds_keyring_files_path.mds_keyring }}"
+      register: configure_mds_mds_keyring
+
+    - name: If mds keyrings doesn't exists, generate mds keyring'
+      ansible.builtin.shell: >
+        ceph auth get-or-create mds.{{ inventory_hostname }} \
+        osd "allow rwx" mds "allow" mon "allow profile mds" \
+        > /var/lib/ceph/mds/ceph-{{ inventory_hostname }}/keyring
+      changed_when: false
+      when: not configure_mds_mds_keyring.stat.exists
+
+- name: Start and ensure mds service running
+  block:
+    - name: Start and ensure mds service running
+      ansible.builtin.service:
+        name: "ceph-mds@{{ inventory_hostname }}"
+        state: started
+        enabled: true
+
+- name: Create mark file to indicate tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_mds_mark_files_path.configure_mds_success }}"
+    state: touch
+    mode: '0644'

@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_rgw
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_rgw_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_rgw tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_rgw_mark_files_path.configure_rgw_followers_success }}"
+      register: configure_rgw_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_rgw_mark_file.stat.exists
+
+- name: Install rgw packages
+  ansible.builtin.dnf:
+    name: "{{ configure_rgw_packages }}"
+    state: present
+
+- name: Deploy RGW keyring and Redeploy Ceph.conf to followers
+  block:
+    - name: Deploy ceph.conf to follower hosts
+      ansible.builtin.copy:
+        src: "{{ configure_rgw_role_files_path.ceph_conf }}"
+        dest: "{{ configure_rgw_ceph_conf_path }}"
+        mode: '0644'
+
+    - name: Deploy RGW keyring to follower hosts
+      ansible.builtin.copy:
+        src: "{{ configure_rgw_role_files_path.rgw_keyring }}"
+        dest: "{{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}"
+        mode: '0644'
+        owner: ceph
+        group: ceph
+        recursive: true
+
+- name: Create log file directory
+  ansible.builtin.file:
+    path: "{{ configure_rgw_log_file_dir_path }}"
+    state: directory
+    mode: '0755'
+  become: true
+  become_user: ceph
+
+- name: Start and ensure rgw service running
+  block:
+    - name: Start and ensure rgw service running
+      ansible.builtin.service:
+        name: "ceph-radosgw@rgw.{{ inventory_hostname }}"
+        state: started
+        enabled: true
+
+- name: Create mark file to indicate tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_rgw_mark_files_path.configure_rgw_followers_success }}"
+    state: touch
+    mode: '0644'

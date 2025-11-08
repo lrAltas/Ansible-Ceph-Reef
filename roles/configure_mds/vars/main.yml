@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_mds
+configure_mds_mark_dir_path: "/root/.mark"
+configure_mds_mark_files_path:
+  configure_mds_success: "{{ configure_mds_mark_dir_path }}/configure_mds_success.mark"
+
+configure_mds_mds_dir_path: "/var/lib/ceph/mds/ceph-{{ inventory_hostname }}"
+configure_mds_mds_keyring_files_path:
+  mds_keyring: "{{ configure_mds_mds_dir_path }}/keyring"
