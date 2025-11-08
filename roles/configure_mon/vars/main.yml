@@ -25,6 +25,7 @@ configure_mon_mon_keyring_files_path:
 
 # 这里改为你的ansible节点上的项目路径
 configure_mon_role_dir_path: "/home/lraltas/project/code_project/Ansible-Ceph-Reef/roles/configure_mon"
+
 configure_mon_role_files_path:
   mon_keyring: "{{ configure_mon_role_dir_path }}/files/ceph.mon.keyring"
   admin_keyring: "{{ configure_mon_role_dir_path }}/files/ceph.client.admin.keyring"

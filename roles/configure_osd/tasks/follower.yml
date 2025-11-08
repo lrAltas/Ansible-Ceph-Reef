@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_osd
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_osd_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_osd tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_osd_mark_files_path.follower_configure_osd_success }}"
+      register: configure_osd_mark_file
+
+    - name: If the tasks has success,skip configure_osd tasks
+      ansible.builtin.meta: end_role
+      when: configure_osd_mark_file.stat.exists
+
+- name: Create OSD on target device
+  block:
+    - name: Check if OSD has been created
+      ansible.builtin.stat:
+        path: "{{ configure_osd_mark_files_path.create_follower_osd_success }}"
+      register: configure_osd_create_follower_osd_mark_file
+
+    - name: Create OSD
+      ansible.builtin.command:
+        cmd: ceph-volume lvm create --data "{{ configure_osd_disk_dev }}" --bluestore
+      changed_when: false
+      when: not configure_osd_create_follower_osd_mark_file.stat.exists
+      register: configure_osd_create_follower_osd_process
+
+    - name: Show OSD creation process status
+      ansible.builtin.debug:
+        var: configure_osd_create_leader_osd_process.stdout
+
+    - name: Create mark file to indicate OSD has been created
+      ansible.builtin.file:
+        path: "{{ configure_osd_mark_files_path.create_follower_osd_success }}"
+        state: touch
+        mode: '0644'
+      when: not configure_osd_create_follower_osd_mark_file.stat.exists
+
+- name: Show OSD status
+  block:
+    - name: Show OSD status
+      ansible.builtin.command:
+        cmd: ceph -s
+      changed_when: false
+      register: configure_osd_show_osd_status
+
+    - name: Print OSD status
+      ansible.builtin.debug:
+        var: configure_osd_show_osd_status.stdout
+
+- name: Create Mark File to indicate configure_osd tasks are already run
+  ansible.builtin.file:
+    path: "{{ configure_osd_mark_files_path.follower_configure_mon_success }}"
+    state: touch
+    mode: '0644'

@@ -18,6 +18,18 @@
       ansible.builtin.meta: end_role
       when: configure_mon_mark_file.stat.exists
 
+- name: Copy keyrings and monmap to target hosts
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0644'
+    remote_src: false
+  loop:
+    - { src: "{{ configure_mon_role_files_path.mon_keyring }}", dest: "{{ configure_mon_mon_keyring_files_path.mon_keyring }}" }
+    - { src: "{{ configure_mon_role_files_path.admin_keyring }}", dest: "{{ configure_mon_mon_keyring_files_path.admin_keyring }}" }
+    - { src: "{{ configure_mon_role_files_path.monmap }}", dest: "{{ configure_mon_mon_keyring_files_path.monmap }}" }
+    - { src: "{{ configure_mon_role_files_path.ceph_conf }}", dest: "{{ configure_mon_ceph_conf_path }}" }
+
 - name: Import glusrter relationship from monmap
   block:
     - name: Check if import glusrter relationship from monmap has been done

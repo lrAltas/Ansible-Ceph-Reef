@@ -1,3 +1,20 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # vars file for roles/configure_osd
+configure_osd_mark_dir_path: "/root/.mark"
+configure_osd_mark_files_path:
+  leader_configure_osd_success: "{{ configure_osd_mark_dir_path }}/configure_osd_success.mark"
+  follower_configure_osd_success: "{{ configure_osd_mark_dir_path }}/follower_configure_osd_success.mark"
+  create_leader_osd_success: "{{ configure_osd_mark_dir_path }}/create_leader_osd_success.mark"
+  create_follower_osd_success: "{{ configure_osd_mark_dir_path }}/create_follower_osd_success.mark"
+
+configure_osd_bootstrap_path: "/var/lib/ceph/bootstrap-osd/"
+configure_osd_bootstrap_keyring_files_path:
+  osd_bootstrap_key: "/var/lib/ceph/bootstrap-osd/ceph.keyring"
+
+configure_osd_role_dir_path: "/home/lraltas/project/code_project/Ansible-Ceph-Reef/roles/configure_osd"
+configure_osd_role_files_path:
+  osd_bootstrap_key: "{{ configure_osd_role_dir_path }}/ceph.keyring"
+
+# 这里改为指定的设备，例如 /dev/sdb
+configure_osd_disk_dev: "/dev/sdb"

@@ -7,3 +7,5 @@ ceph03 ansible_host=10.1.10.102
 ceph01 ansible_host=10.1.10.100
 ceph02 ansible_host=10.1.10.101
 ceph03 ansible_host=10.1.10.102
+[test]
+testhosts ansible_host=192.168.122.223
