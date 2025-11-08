@@ -19,6 +19,11 @@ env_init_chrony_conf_path: "/etc/chrony.conf"
 env_init_ceph_release_pakcages:
   - centos-release-ceph-reef
 
+env_init_epel_packages:
+  - epel-release
+
 env_init_ceph_packages:
   - ceph
-  - epel-release
+
+
+env_init_ntp_server: "ntp.aliyun.com"

@@ -26,20 +26,43 @@
 
 - name: Generate fsid
   block:
-    - name: Generate Fsid
-      community.general.uuid:
-      register: configure_mon_fsid
+    - name: Check if fsid exists
+      ansible.builtin.stat:
+        path: "{{ configure_mon_fsid_path }}"
+      register: configure_mon_fsid_stat
 
-    - name: Write fsid into dest file
+    - name: Generate uuid
+      ansible.builtin.command: uuidgen
+      register: configure_mon_fsid_gen
+      changed_when: not configure_mon_fsid_stat.stat.exists
+
+    - name: Save fsid to file
       ansible.builtin.copy:
-        content: "{{ configure_mon_fsid.uuid }}"
         dest: "{{ configure_mon_fsid_path }}"
+        content: "{{ configure_mon_fsid_gen.stdout }}"
+        owner: ceph
+        group: ceph
         mode: '0644'
+      changed_when: not configure_mon_fsid_stat.stat.exists
+
+    - name: Read fsid from file
+      ansible.builtin.command:
+        cmd: cat {{ configure_mon_fsid_path }}
+      changed_when: configure_mon_fsid_stat.stat.exists
+      register: configure_mon_fsid_read
 
 - name: Deploy Ceph config file from templates
   ansible.builtin.template:
     src: "{{ configure_mon_ceph_conf_template_path }}"
     dest: "{{ configure_mon_ceph_conf_path }}"
+    mode: '0644'
+
+- name: Add Fsid into ceph.conf
+  community.general.ini_file:
+    path: "{{ configure_mon_ceph_conf_path }}"
+    section: "global"
+    option: "fsid"
+    value: "{{ configure_mon_fsid_read.stdout }}"
     mode: '0644'
 
 - name: Generate Mon keyring
@@ -132,7 +155,7 @@
         {% for host in groups['mons'] %}
         --add {{ host }} {{ hostvars[host].ansible_host }}
         {% endfor %}
-        --fsid {{ lookup('file', configure_mon_fsid_path) | trim }}
+        --fsid {{ configure_mon_fsid_read.stdout | trim }}
         /tmp/monmap
       changed_when: false
       when: not configure_mon_monmap.stat.exists

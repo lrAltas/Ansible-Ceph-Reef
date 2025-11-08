@@ -76,13 +76,18 @@
         name: "{{ env_init_ceph_release_pakcages }}"
         state: present
 
+    - name: Install epel-release
+      ansible.builtin.dnf:
+        name: "{{ env_init_epel_packages }}"
+        state: present
+
     - name: Install Ceph Pakcages
       ansible.builtin.dnf:
-        name: "{{ env_init_ceph_pakcages }}"
+        name: "{{ env_init_ceph_packages }}"
         state: present
 
 - name: Create mark file to indicate env_init tasks are already run
   ansible.builtin.file:
-    path: "{{ mark_dir_path }}/env_init.mark"
+    path: "{{ env_init_mark_files_path.env_init_success }}"
     state: touch
     mode: '0644'

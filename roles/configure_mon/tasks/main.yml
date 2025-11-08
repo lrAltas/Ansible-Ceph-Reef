@@ -6,5 +6,5 @@
   when: inventory_hostname in groups['leader']
 
 - name: Include follower tasks for follower nodes
-  ansible.builtin.import_tasks: follower.yml
+  ansible.builtin.import_tasks: followers.yml
   when: inventory_hostname in groups['followers']

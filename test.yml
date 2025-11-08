@@ -1,0 +1,54 @@
+---
+- name: Do the env_init
+  serial: 1
+  hosts: all
+  roles:
+    - env_init
+
+- name: Deploy monitor
+  serial: 2
+  hosts: leader
+  roles:
+    - configure_mon
+
+- name: Deploy monitor
+  serial: 2
+  hosts: followers
+  roles:
+    - configure_mon
+
+- name: Deploy OSD
+  serial: 3
+  hosts: leader
+  roles:
+    - configure_osd
+
+- name: Deploy OSD
+  serial: 3
+  hosts: followers
+  roles:
+    - configure_osd
+
+- name: Deploy MDS
+  serial: 4
+  hosts: leader
+  roles:
+    - configure_mds
+
+- name: Deploy MDS
+  serial: 4
+  hosts: followers
+  roles:
+    - configure_mds
+
+- name: Deploy RGW
+  serial: 5
+  hosts: leader
+  roles:
+    - configure_rgw
+
+- name: Deploy RGW
+  serial: 5
+  hosts: followers
+  roles:
+    - configure_rgw
