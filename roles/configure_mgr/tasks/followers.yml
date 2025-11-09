@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/configure_mgr
+- name: Check if configure_mon tasks are already run
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ configure_mgr_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if configure_mgr tasks are already run
+      ansible.builtin.stat:
+        path: "{{ configure_mgr_mark_files_path.leader_configure_mgr_success }}"
+      register: configure_mgr_mark_file
+
+    - name: If the tasks has success,skip configure_mon tasks
+      ansible.builtin.meta: end_role
+      when: configure_mgr_mark_file.stat.exists
+
+- name: Check andgenerate keyring
+  block:
+    - name: Check if keyring exists
+      ansible.builtin.stat:
+        path: "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}/keyring"
+      register: configure_mgr_keyring_file
+
+    - name: Create keyring directory If not exists
+      ansible.builtin.file:
+        path: "{{ configure_mgr_keyring_dir_path }}"
+        state: directory
+        mode: '0755'
+        owner: ceph
+        group: ceph
+      when: not configure_mgr_keyring_file.stat.exists
+
+    - name: Create keyring directory
+      ansible.builtin.file:
+        path: "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+        owner: ceph
+        group: ceph
+      when: configure_mgr_keyring_file.stat.exists
+
+    - name: Generate keyring
+      ansible.builtin.shell: >
+        ceph auth get-or-create mgr."{{ inventory_hostname }}" \
+        mon 'allow profile mgr' osd 'allow *' mds 'allow *' > "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}/keyring"
+      changed_when: false
+      when: not configure_mgr_keyring_file.stat.exists
+
+- name: Start and enable ceph-mgr service
+  block:
+    - name: Start and enable ceph-mgr service
+      ansible.builtin.service:
+        name: "ceph-mgr@{{ inventory_hostname }}"
+        state: started
+        enabled: true
+      register: configure_mgr_service_status
+
+    - name: Print ceph-mgr service status
+      ansible.builtin.debug:
+        var: configure_mgr_service_status.stdout
+
+- name: Create Mark File to indicate that the tasks has been run
+  ansible.builtin.file:
+    path: "{{ configure_mgr_mark_files_path.leader_configure_mgr_success }}"
+    state: touch
+    mode: '0755'

@@ -11,7 +11,7 @@
 
     - name: Check if configure_osd tasks are already run
       ansible.builtin.stat:
-        path: "{{ configure_osd_mark_files_path.leader_configure_mon_success }}"
+        path: "{{ configure_osd_mark_files_path.leader_configure_osd_success }}"
       register: configure_osd_mark_file
 
     - name: If the tasks has success,skip configure_osd tasks
@@ -65,6 +65,6 @@
 
 - name: Create Mark File to indicate configure_osd tasks are already run
   ansible.builtin.file:
-    path: "{{ configure_osd_mark_files_path.leader_configure_mon_success }}"
+    path: "{{ configure_osd_mark_files_path.leader_configure_osd_success }}"
     state: touch
     mode: '0644'

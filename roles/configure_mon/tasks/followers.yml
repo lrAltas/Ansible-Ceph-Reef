@@ -18,6 +18,12 @@
       ansible.builtin.meta: end_role
       when: configure_mon_mark_file.stat.exists
 
+- name: Ensure keyring directory exists
+  ansible.builtin.file:
+    path: "{{ configure_mon_mon_keyring_dir_path }}"
+    state: directory
+    mode: '0755'
+
 - name: Copy keyrings and monmap to target hosts
   ansible.builtin.copy:
     src: "{{ item.src }}"
@@ -49,8 +55,9 @@
     - name: Import glusrter relationship from monmap
       ansible.builtin.command: >
         ceph-mon --mkfs
-        --monmap {{ configure_mon_role_files_path.monmap }}
-        --keyring {{ configure_mon_role_files_path.mon_keyring }}
+        -i {{ inventory_hostname }}
+        --monmap {{ configure_mon_mon_keyring_files_path.monmap }}
+        --keyring {{ configure_mon_mon_keyring_files_path.mon_keyring }}
       changed_when: false
       when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
 

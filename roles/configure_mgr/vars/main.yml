@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_mgr
+configure_mgr_mark_dir_path: "/root/.mark"
+configure_mgr_mark_files_path:
+  leader_configure_mgr_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_leader_success.mark"
+  followers_configure_mgr_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_followers_success.mark"
+  import_crt_success: "{{ configure_mgr_mark_dir_path }}/import_crt_success.mark"
+  import_key_success: "{{ configure_mgr_mark_dir_path }}/import_key_success.mark"
+  configure_mgr_dashboard_port_and_ip_configure_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_dashboard_port_and_ip_configure_success.mark"
+  configure_mgr_rgw_api_ssl_configure_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_rgw_api_ssl_configure_success.mark"
+  configure_mgr_user_and_password_configure_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_user_and_password_configure_success.mark"
+  configure_mgr_dashboard_enable_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_dashboard_enable_success.mark"
+
+configure_mgr_keyring_dir_path: "/var/lib/ceph/mgr"
+configure_mgr_dashboard_packages:
+  - ceph-mgr-dashboard
+
+configure_mgr_dashboard_key_path: "/etc/ceph/dashboard.key"
+configure_mgr_dashboard_crt_path: "/etc/ceph/dashboard.crt"
+
+configure_mgr_dashboard_admin_password_file_path: "/etc/ceph/password.txt"
+configure_mgr_dashboard_admin_password: "liuziyi212"

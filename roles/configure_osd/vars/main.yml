@@ -10,7 +10,7 @@ configure_osd_mark_files_path:
 
 configure_osd_bootstrap_path: "/var/lib/ceph/bootstrap-osd/"
 configure_osd_bootstrap_keyring_files_path:
-  osd_bootstrap_key: "/var/lib/ceph/bootstrap-osd/ceph.keyring"
+  osd_bootstrap_key: "{{ configure_osd_bootstrap_path }}ceph.keyring"
 
 configure_osd_role_dir_path: "/home/lraltas/project/code_project/Ansible-Ceph-Reef/roles/configure_osd"
 configure_osd_role_files_path:

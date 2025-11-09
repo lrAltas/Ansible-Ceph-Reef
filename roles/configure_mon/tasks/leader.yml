@@ -34,7 +34,8 @@
     - name: Generate uuid
       ansible.builtin.command: uuidgen
       register: configure_mon_fsid_gen
-      changed_when: not configure_mon_fsid_stat.stat.exists
+      changed_when: false
+      when: not configure_mon_fsid_stat.stat.exists
 
     - name: Save fsid to file
       ansible.builtin.copy:
@@ -43,13 +44,16 @@
         owner: ceph
         group: ceph
         mode: '0644'
-      changed_when: not configure_mon_fsid_stat.stat.exists
+      when: not configure_mon_fsid_stat.stat.exists
 
-    - name: Read fsid from file
-      ansible.builtin.command:
-        cmd: cat {{ configure_mon_fsid_path }}
-      changed_when: configure_mon_fsid_stat.stat.exists
-      register: configure_mon_fsid_read
+- name: Read fsid from file
+  ansible.builtin.slurp:
+    src: "{{ configure_mon_fsid_path }}"
+  register: configure_mon_fsid_file_content
+
+- name: Set fsid variable
+  ansible.builtin.set_fact:
+    configure_mon_fsid_value: "{{ configure_mon_fsid_file_content.content | b64decode | trim }}"
 
 - name: Deploy Ceph config file from templates
   ansible.builtin.template:
@@ -62,7 +66,7 @@
     path: "{{ configure_mon_ceph_conf_path }}"
     section: "global"
     option: "fsid"
-    value: "{{ configure_mon_fsid_read.stdout }}"
+    value: "{{ configure_mon_fsid_value }}"
     mode: '0644'
 
 - name: Generate Mon keyring
@@ -75,7 +79,7 @@
     - name: Generate Mon keyring
       ansible.builtin.command:
         cmd: ceph-authtool --create-keyring "{{ configure_mon_mon_keyring_files_path.mon_keyring }}" --gen-key -n mon. --cap mon 'allow *'
-      changed_when: false
+      changed_when: true
       when: not configure_mon_mon_keyring.stat.exists
 
 - name: Generate admin keyring
@@ -93,7 +97,7 @@
         --cap osd 'allow *'
         --cap mds 'allow *'
         --cap mgr 'allow *'
-      changed_when: false
+      changed_when: true
       when: not configure_mon_admin_keyring.stat.exists
 
 - name: Generate OSD bootstrap key
@@ -109,7 +113,7 @@
         --gen-key -n client.bootstrap-osd
         --cap mon 'profile bootstrap-osd'
         --cap mgr 'allow r'
-      changed_when: false
+      changed_when: true
       when: not configure_mon_osd_bootstrap_key.stat.exists
 
 - name: Import Admin and OSD keyring into mon keyring
@@ -126,7 +130,7 @@
       loop:
         - "{{ configure_mon_mon_keyring_files_path.admin_keyring }}"
         - "{{ configure_mon_mon_keyring_files_path.osd_bootstrap_key }}"
-      changed_when: false
+      changed_when: true
       when: not configure_mon_import_ad_osd_into_mon.stat.exists
 
     - name: Create mark file to indicate import Admin and OSD keyring into mon keyring has been done
@@ -150,15 +154,15 @@
       register: configure_mon_monmap
 
     - name: Generate Monmap topology diagram
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
         monmaptool --create
         {% for host in groups['mons'] %}
         --add {{ host }} {{ hostvars[host].ansible_host }}
         {% endfor %}
-        --fsid {{ configure_mon_fsid_read.stdout | trim }}
-        /tmp/monmap
-      changed_when: false
+        --fsid {{ configure_mon_fsid_value }}
+        {{ configure_mon_mon_keyring_files_path.monmap }}
       when: not configure_mon_monmap.stat.exists
+      changed_when: true
 
 - name: Deploy necessary files to target hosts
   block:
@@ -192,8 +196,9 @@
     - name: Import glusrter relationship from monmap
       ansible.builtin.command: >
         ceph-mon --mkfs
-        --monmap {{ configure_mon_role_files_path.monmap }}
-        --keyring {{ configure_mon_role_files_path.mon_keyring }}
+        -i {{ inventory_hostname }}
+        --monmap {{ configure_mon_mon_keyring_files_path.monmap }}
+        --keyring {{ configure_mon_mon_keyring_files_path.mon_keyring }}
       changed_when: false
       when: not configure_mon_import_gluster_relationship_from_monmap.stat.exists
 

@@ -35,7 +35,7 @@
         ceph auth  get-or-create client.rgw.{{ item }} osd 'allow rwx' mon 'allow rwx' >> {{ configure_rgw_rgw_keyring_files_path.rgw_keyring }}
       changed_when: false
       when: not configure_rgw_rgw_keyring.stat.exists
-      loop: "{{ group['mds'] }}"
+      loop: "{{ groups['mds'] }}"
 
     - name: Change privilege
       ansible.builtin.file:
@@ -70,13 +70,17 @@
         dest: "{{ configure_rgw_role_files_path.rgw_keyring }}"
         flat: true
 
+
 - name: Create log file directory
-  ansible.builtin.file:
-    path: "{{ configure_rgw_log_file_dir_path }}"
-    state: directory
-    mode: '0755'
-  become: true
-  become_user: ceph
+  block:
+    - name: Create log file directory
+      ansible.builtin.file:
+        path: "{{ configure_rgw_log_file_dir_path }}"
+        state: directory
+        mode: '0755'
+        owner: ceph
+        group: ceph
+
 
 - name: Start and ensure rgw service running
   block:

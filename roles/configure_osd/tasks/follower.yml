@@ -18,6 +18,12 @@
       ansible.builtin.meta: end_role
       when: configure_osd_mark_file.stat.exists
 
+- name: Copy bootstrap keyring files
+  ansible.builtin.copy:
+    src: "{{ configure_osd_role_files_path.osd_bootstrap_key }}"
+    dest: "{{ configure_osd_bootstrap_keyring_files_path.osd_bootstrap_key }}"
+    mode: '0644'
+
 - name: Create OSD on target device
   block:
     - name: Check if OSD has been created
@@ -57,6 +63,6 @@
 
 - name: Create Mark File to indicate configure_osd tasks are already run
   ansible.builtin.file:
-    path: "{{ configure_osd_mark_files_path.follower_configure_mon_success }}"
+    path: "{{ configure_osd_mark_files_path.follower_configure_osd_success }}"
     state: touch
     mode: '0644'
