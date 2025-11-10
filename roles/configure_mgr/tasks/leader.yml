@@ -13,16 +13,21 @@
         path: "{{ configure_mgr_mark_files_path.leader_configure_mgr_success }}"
       register: configure_mgr_mark_file
 
-    - name: If the tasks has success,skip configure_mon tasks
+    - name: If the tasks has success,skip configure_mgr tasks
       ansible.builtin.meta: end_role
       when: configure_mgr_mark_file.stat.exists
 
-- name: Check andgenerate keyring
+- name: Check and generate keyring
   block:
     - name: Check if keyring exists
       ansible.builtin.stat:
-        path: "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}/keyring"
+        path: "{{ configure_mgr_keyring_file_path }}"
       register: configure_mgr_keyring_file
+
+    - name: Check keyring directory
+      ansible.builtin.stat:
+        path: "{{ configure_mgr_keyring_dir_path }}"
+      register: configure_mgr_keyring_dir
 
     - name: Create keyring directory If not exists
       ansible.builtin.file:
@@ -31,21 +36,12 @@
         mode: '0755'
         owner: ceph
         group: ceph
-      when: not configure_mgr_keyring_file.stat.exists
-
-    - name: Create keyring directory
-      ansible.builtin.file:
-        path: "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}"
-        state: directory
-        mode: '0755'
-        owner: ceph
-        group: ceph
-      when: configure_mgr_keyring_file.stat.exists
+      when: not configure_mgr_keyring_dir.stat.exists
 
     - name: Generate keyring
-      ansible.builtin.shell: >
+      ansible.builtin.shell: |
         ceph auth get-or-create mgr."{{ inventory_hostname }}" \
-        mon 'allow profile mgr' osd 'allow *' mds 'allow *' > "{{ configure_mgr_keyring_dir_path }}/ceph-{{ inventory_hostname }}/keyring"
+        mon 'allow profile mgr' osd 'allow *' mds 'allow *' > "{{ configure_mgr_keyring_file_path }}"
       changed_when: false
       when: not configure_mgr_keyring_file.stat.exists
 
@@ -66,6 +62,26 @@
   ansible.builtin.dnf:
     name: "{{ configure_mgr_dashboard_packages }}"
     state: present
+
+- name: Enable dashboard
+  block:
+    - name: Check if dashboard enable mark file exists
+      ansible.builtin.stat:
+        path: "{{ configure_mgr_mark_files_path.configure_mgr_dashboard_enable_success }}"
+      register: configure_mgr_dashboard_enable_mark_file
+
+    - name: Enable dashboard
+      ansible.builtin.shell: |
+        ceph mgr module enable dashboard
+      changed_when: false
+      when: not configure_mgr_dashboard_enable_mark_file.stat.exists
+
+    - name: Create success mark file
+      ansible.builtin.file:
+        path: "{{ configure_mgr_mark_files_path.configure_mgr_dashboard_enable_success }}"
+        state: touch
+        mode: '0644'
+      when: not configure_mgr_dashboard_enable_mark_file.stat.exists
 
 - name: Configure ceph-mgr-dashboard
   block:
@@ -194,27 +210,6 @@
         state: touch
         mode: '0644'
       when: not configure_mgr_user_and_password_configure_mark_file.stat.exists
-
-- name: Enable dashboard
-  block:
-    - name: Check if dashboard enable mark file exists
-      ansible.builtin.stat:
-        path: "{{ configure_mgr_mark_files_path.configure_mgr_dashboard_enable_success }}"
-      register: configure_mgr_dashboard_enable_mark_file
-      when: configure_mgr_dashboard_enable_mark_file.stat.exists
-
-    - name: Enable dashboard
-      ansible.builtin.shell: |
-        ceph mgr module enable dashboard
-      changed_when: false
-      when: not configure_mgr_dashboard_enable_mark_file.stat.exists
-
-    - name: Create success mark file
-      ansible.builtin.file:
-        path: "{{ configure_mgr_mark_files_path.configure_mgr_dashboard_enable_success }}"
-        state: touch
-        mode: '0644'
-      when: not configure_mgr_dashboard_enable_mark_file.stat.exists
 
 - name: Create Mark File to indicate that the tasks has been run
   ansible.builtin.file:

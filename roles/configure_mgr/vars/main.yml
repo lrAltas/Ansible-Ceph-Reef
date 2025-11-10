@@ -12,7 +12,8 @@ configure_mgr_mark_files_path:
   configure_mgr_user_and_password_configure_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_user_and_password_configure_success.mark"
   configure_mgr_dashboard_enable_success: "{{ configure_mgr_mark_dir_path }}/configure_mgr_dashboard_enable_success.mark"
 
-configure_mgr_keyring_dir_path: "/var/lib/ceph/mgr"
+configure_mgr_keyring_dir_path: "/var/lib/ceph/mgr/ceph-{{ inventory_hostname }}"
+configure_mgr_keyring_file_path: "{{ configure_mgr_keyring_dir_path }}/keyring"
 configure_mgr_dashboard_packages:
   - ceph-mgr-dashboard
 

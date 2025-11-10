@@ -52,3 +52,15 @@
   hosts: followers
   roles:
     - configure_rgw
+
+- name: Deploy MGR
+  serial: 6
+  hosts: leader
+  roles:
+    - configure_mgr
+
+- name: Deploy MGR
+  serial: 6
+  hosts: followers
+  roles:
+    - configure_mgr

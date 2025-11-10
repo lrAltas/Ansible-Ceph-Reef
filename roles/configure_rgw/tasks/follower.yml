@@ -38,15 +38,14 @@
         mode: '0644'
         owner: ceph
         group: ceph
-        recursive: true
 
 - name: Create log file directory
   ansible.builtin.file:
     path: "{{ configure_rgw_log_file_dir_path }}"
     state: directory
     mode: '0755'
-  become: true
-  become_user: ceph
+    owner: ceph
+    group: ceph
 
 - name: Start and ensure rgw service running
   block:

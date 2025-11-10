@@ -1,13 +1,13 @@
 [mon.]
-	key = AQAKlxBp3VXSAxAAFfGjVXm2y64hJayQW4dZgA==
+	key = AQBakBFpqbdJCxAANn280lonRoILBZCxzMQdpw==
 	caps mon = "allow *"
 [client.admin]
-	key = AQALlxBpwBB4LhAAOxEcFJT/rnhCaqcCnafYqQ==
+	key = AQBbkBFpGgj8NxAAkyzrk5jm0J14XJDCV1MV7Q==
 	caps mds = "allow *"
 	caps mgr = "allow *"
 	caps mon = "allow *"
 	caps osd = "allow *"
 [client.bootstrap-osd]
-	key = AQANlxBpTYvpHhAA/IdxXx78fQrrFVMwcnTLUg==
+	key = AQBdkBFpIk2RJhAA9PipoA7vrNb9kbJm1m93Bg==
 	caps mgr = "allow r"
 	caps mon = "profile bootstrap-osd"

@@ -1,6 +1,6 @@
 [client.rgw.ceph01]
-	key = AQAjnhBpifSVDBAA0uhsVXRO6P/OyCl3MuOmPA==
+	key = AQASkRFpH78JBxAAHtdWc9ffIcBBX73lN62DJw==
 [client.rgw.ceph02]
-	key = AQAnnhBpILG6KxAAMF6Fyyesv7sob/Ee/OEPdA==
+	key = AQAUkRFpj62GHBAAwCRtuNrW+V0m86CaeIdUeQ==
 [client.rgw.ceph03]
-	key = AQApnhBpLBK3DBAAGDK2ehK40XmsfgR11z53Eg==
+	key = AQAZkRFpPZeJFxAAzo+VKczwlphiYrT1rcBj6A==
