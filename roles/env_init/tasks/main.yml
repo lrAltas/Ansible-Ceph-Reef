@@ -86,6 +86,23 @@
         name: "{{ env_init_ceph_packages }}"
         state: present
 
+- name: Disable SELinux
+  block:
+    - name: Disable SELinux permenatly
+      ansible.posix.selinux:
+        state: disabled
+        policy: targeted
+
+    - name: Reboot to apply all changes
+      ansible.builtin.reboot:
+        msg: "Reboot to fully disable SELinux"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+      when: selinux_reboot_required | default(true)
+
+
 - name: Create mark file to indicate env_init tasks are already run
   ansible.builtin.file:
     path: "{{ env_init_mark_files_path.env_init_success }}"
