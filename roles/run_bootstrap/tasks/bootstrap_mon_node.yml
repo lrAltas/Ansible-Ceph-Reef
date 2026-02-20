@@ -1,0 +1,4 @@
+---
+- name: Run Cephadm Bootstrap
+  ceph.automation.cephadm_bootstrap:
+    mon_ip: "{{ ansible_host }}"

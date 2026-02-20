@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/env_init
+env_init_mark_dir_path: ./root/mark
+env_init_mark_file_path: "{{ env_init_mark_dir_path }}/env_init_success.mark"
+
+# 这以下内容是一个NTP服务器变量的示例配置，可以根据需要取消注释并修改
+# env_init_custom_ntp_server:
+#   - host: ntp1.aliyun.com
+#     options: iburst
+#   - host: ntp2.aliyun.com
+#     options: iburst prefer
+#   - host: 192.168.1.100
+#     options: iburst minpoll 4
+# 此处我们只有一个,正常来说NTP服务器尽量存在2-3个才能保证高可用
+env_init_custom_ntp_server:
+  - host: dns.openstack.suying
+    options: iburst
+
+env_init_custom_ntp_backup_dir: /etc/chrony_backup
+env_init_custom_ntp_conf_path: /etc/chrony.conf
+env_init_custom_ntp_conf_backup_path: "{{ env_init_custom_ntp_backup_dir }}/chrony.conf.bak"
+
+env_init_connection_name: "enp1s0"
+
+env_init_ceph_release_packages: centos-release-ceph-reef
+env_init_cephadm_packages:
+  - cephadm
+  - podman

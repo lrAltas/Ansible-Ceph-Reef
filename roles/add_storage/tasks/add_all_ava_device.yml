@@ -1,0 +1,6 @@
+---
+- name: Add all available devices to Ceph
+  ansible.builtin.command:
+    cmd: "ceph orch apply osd --all-available-devices"
+  when: inventory_hostname in groups['ceph_bootstrap']
+  changed_when: false

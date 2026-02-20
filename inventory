@@ -1,0 +1,21 @@
+[all]
+cephadm01.openstack.suying ansible_host=10.1.10.50
+cephadm02.openstack.suying ansible_host=10.1.10.51
+cephadm03.openstack.suying ansible_host=10.1.10.52
+
+[ceph_bootstrap]
+cephadm01.openstack.suying
+
+[new_add_ceph_nodes]
+cephadm02.openstack.suying
+cephadm03.openstack.suying
+
+[monitors]
+cephadm01.openstack.suying
+cephadm02.openstack.suying
+cephadm03.openstack.suying
+
+[OSD]
+
+[dns_server]
+dns.openstack.suying ansible_host=10.1.10.2

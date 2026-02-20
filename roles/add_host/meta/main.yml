@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+galaxy_info:
+  author: LRAltas
+  description: 为 Ceph 集群添加主机并安装 SSH 密钥，执行添加主机和安装密钥的任务，并创建标记文件以避免重复执行。
+  company: 新问云图工作室
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - ceph
+    - host
+    - ssh
+    - bootstrap
+
+dependencies: []

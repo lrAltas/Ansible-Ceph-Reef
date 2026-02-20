@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/add_storage
+- name: Check if the tasks has been running
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ add_storage_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if add_storage tasks have been run
+      ansible.builtin.stat:
+        path: "{{ add_storage_mark_file_path }}"
+      register: add_storage_mark_file
+
+    - name: Skip if add_storage tasks have been run
+      ansible.builtin.meta: end_role
+      when: add_storage_mark_file.stat.exists
+
+- name: Add all available devices to Ceph
+  ansible.builtin.import_role: add_all_ava_device.yml
+  tags: add_all_ava_device
+
+- name: Create mark file to indicate add_storage tasks have been run
+  ansible.builtin.file:
+    path: "{{ add_storage_mark_file_path }}"
+    state: touch
+    mode: '0644'

@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/add_host
+- name: Check if the tasks has been running
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ add_host_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if add_host tasks have been run
+      ansible.builtin.stat:
+        path: "{{ add_host_mark_file_path }}"
+      register: add_host_mark_file
+
+    - name: Skip if add_host tasks have been run
+      ansible.builtin.meta: end_role
+      when: add_host_mark_file.stat.exists
+
+- name: Install SSH key for Ceph
+  ansible.builtin.import_tasks: install_ssh_key.yml
+  tags: install_ssh_key
+
+- name: Add host to Ceph cluster
+  ansible.builtin.import_tasks: add_host.yml
+  tags: add_host_to_ceph
+
+- name: Create mark file to indicate add_host tasks have been run
+  ansible.builtin.file:
+    path: "{{ add_host_mark_file_path }}"
+    state: touch
+    mode: '0644'

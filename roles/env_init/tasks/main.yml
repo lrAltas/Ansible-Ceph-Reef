@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/env_init
+- name: Check if the tasks has been running
+  block:
+    - name: Ensure Mark Directory Exists
+      ansible.builtin.file:
+        path: "{{ env_init_mark_dir_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Check if env_init tasks have been run
+      ansible.builtin.stat:
+        name: "{{ env_init_mark_file_path }}"
+      register: env_init_mark_file
+
+    - name: Skip if init_env tasks have been run
+      ansible.builtin.meta: end_role
+      when: env_init_mark_file.stat.exists
+
+- name: Set hostname
+  ansible.builtin.import_tasks: set_hostname.yml
+  tags: set_hostname
+
+- name: Configure NTP server
+  ansible.builtin.import_tasks: configure_ntp_server.yml
+  tags: configure_ntp_server
+
+- name: Configure DNS server
+  ansible.builtin.import_tasks: configure_dns_server.yml
+  tags: configure_dns_server
+
+- name: Install Ceph packages
+  ansible.builtin.import_tasks: install_ceph_packages.yml
+  tags: install_ceph_packages
+
+- name: Stop firewalld
+  ansible.builtin.import_tasks: configure_firewalld.yml
+  tags: configure_firewalld
+
+- name: Disable SElinux
+  ansible.builtin.import_tasks: configure_selinux.yml
+  tags: disable_selinux
+
+- name: Create mark file to indicate init_env tasks have been run
+  ansible.builtin.file:
+    path: "{{ env_init_mark_file_path }}"
+    state: touch
+    mode: '0644'

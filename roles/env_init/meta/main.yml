@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MIT
+galaxy_info:
+  author: LRAltas
+  description: 初始化节点环境：设置主机名、配置 NTP/DNS、安装 Ceph 依赖包、停用防火墙并禁用 SELinux，完成后会创建标记文件以避免重复执行。
+  company: 新问云图工作室
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - ceph
+    - init
+    - ntp
+    - dns
+
+dependencies: []

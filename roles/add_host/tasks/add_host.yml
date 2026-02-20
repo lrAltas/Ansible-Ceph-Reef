@@ -1,0 +1,15 @@
+---
+- name: Ceph orch host add loop
+  cephadm.ceph_orch.ceph_orch_host:   # 注意 collection 名字可能不同
+    name: "{{ item }}"
+    address: "{{ hostvars[item].ansible_host | default(item) }}"
+    state: present
+  loop: "{{ groups.new_add_ceph_nodes | default([]) }}"
+  args:
+    creates: "{{ add_host_tasks_mark_file_path.operation_done_mark_file }}"
+
+- name: Create mark file to indicate host addition is done
+  ansible.builtin.file:
+    path: "{{ add_host_tasks_mark_file_path.operation_done_mark_file }}"
+    state: touch
+    mode: '0644'

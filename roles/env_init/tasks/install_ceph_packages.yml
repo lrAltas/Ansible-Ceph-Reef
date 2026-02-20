@@ -1,0 +1,10 @@
+---
+- name: Install Ceph and related packages
+  ansible.builtin.dnf:
+    name: "{{ env_init_ceph_release_packages }}"
+    state: present
+
+- name: Install Cephadm and Podman
+  ansible.builtin.dnf:
+    name: "{{ env_init_cephadm_packages }}"
+    state: present

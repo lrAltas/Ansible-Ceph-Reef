@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/add_host
+add_host_mark_dir_path: ./root/mark
+add_host_mark_file_path: "{{ add_host_mark_dir_path }}/add_host_success.mark"
+
+add_host_tasks_mark_file_path:
+  ssh_key_installed_mark_file: "{{ add_host_mark_dir_path }}/ssh_key_installed.mark"
+  operation_done_mark_file: "{{ add_host_mark_dir_path }}/operation_done.mark"

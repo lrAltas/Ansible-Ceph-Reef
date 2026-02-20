@@ -1,0 +1,32 @@
+---
+- name: Condigure NTR Server
+  block:
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: "{{ env_init_custom_ntp_backup_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Backup chrony.conf before modification
+      ansible.builtin.copy:
+        src: "{{ env_init_custom_ntp_conf_path }}"
+        dest: "{{ env_init_custom_ntp_conf_backup_path }}"
+        remote_src: true
+        mode: '0644'
+
+    - name: Comment out all pool and server lines
+      ansible.builtin.replace:
+        path: "{{ env_init_custom_ntp_conf_path }}"
+        regexp: '^\s*(pool|server)\s+'
+        replace: '# \1 '
+        backup: true
+
+    - name: Add custom NTP servers from list of dicts
+      ansible.builtin.lineinfile:
+        path: "{{ env_init_custom_ntp_conf_path }}"
+        regexp: '^server {{ item.host | regex_escape() }}'
+        line: "server {{ item.host }} {{ item.options | default('iburst') }}"
+        insertafter: EOF   # 追加到文件末尾（安全位置）
+        state: present
+      loop: "{{ env_init_custom_ntp_server }}"
+      when: env_init_custom_ntp_server is defined and env_init_custom_ntp_server | length > 0

@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+galaxy_info:
+  author: LRAltas
+  description: 使用 cephadm 运行 Ceph 引导（bootstrap）流程，为监视器节点执行引导并创建标记文件以避免重复执行。
+  company: 新问云图工作室
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - ceph
+    - bootstrap
+    - cephadm
+
+dependencies: []

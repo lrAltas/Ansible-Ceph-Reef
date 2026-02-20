@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+galaxy_info:
+  author: LRAltas
+  description: 发现并将可用磁盘设备添加为 Ceph 存储（OSD），并在完成后创建标记文件以避免重复执行。
+  company: 新问云图工作室
+  license: MIT
+  min_ansible_version: "2.9"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+
+  galaxy_tags:
+    - ceph
+    - storage
+    - osd
+
+dependencies: []

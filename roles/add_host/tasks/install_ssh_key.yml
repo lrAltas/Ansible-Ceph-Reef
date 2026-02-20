@@ -1,0 +1,16 @@
+---
+# 这个安装ssh key 是安装进行了bootstrap的节点的ssh key到其他需要添加进来的主机上
+- name: Install SSH Key
+  block:
+    - name: Install SSH Key by command module
+      ansible.builtin.command:
+        cmd: ssh-copy-id -f -i /etc/ceph/ceph.pub root@{{ item }}
+      loop: "{{ groups['new_add_ceph_nodes'] }}"
+      args:
+        creates: "{{ add_host_tasks_mark_file_path.ssh_key_installed_mark_file }}"
+
+    - name: Create mark file to indicate SSH key installation is done
+      ansible.builtin.file:
+        path: "{{ add_host_tasks_mark_file_path.ssh_key_installed_mark_file }}"
+        state: touch
+        mode: '0644'
