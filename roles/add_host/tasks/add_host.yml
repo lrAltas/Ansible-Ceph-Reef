@@ -1,6 +1,6 @@
 ---
 - name: Ceph orch host add loop
-  cephadm.ceph_orch.ceph_orch_host:   # 注意 collection 名字可能不同
+  ceph.automation.ceph_orch_host:   # 注意 collection 名字可能不同
     name: "{{ item }}"
     address: "{{ hostvars[item].ansible_host | default(item) }}"
     state: present

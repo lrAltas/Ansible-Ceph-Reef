@@ -19,7 +19,7 @@
       when: add_storage_mark_file.stat.exists
 
 - name: Add all available devices to Ceph
-  ansible.builtin.import_role: add_all_ava_device.yml
+  ansible.builtin.import_tasks: add_all_ava_device.yml
   tags: add_all_ava_device
 
 - name: Create mark file to indicate add_storage tasks have been run

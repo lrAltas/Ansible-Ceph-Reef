@@ -1,0 +1,20 @@
+---
+- name: Env_init
+  hosts: ceph_nodes
+  roles:
+    - env_init
+
+- name: Run bootstrap on the first monitor node
+  hosts: ceph_bootstrap
+  roles:
+    - run_bootstrap
+
+- name: Add hosts to the cluster
+  hosts: new_add_ceph_nodes
+  roles:
+    - add_host
+
+- name: Add storage to the cluster
+  hosts: ceph_bootstrap
+  roles:
+    - add_storage

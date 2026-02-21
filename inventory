@@ -1,4 +1,4 @@
-[all]
+[ceph_nodes]
 cephadm01.openstack.suying ansible_host=10.1.10.50
 cephadm02.openstack.suying ansible_host=10.1.10.51
 cephadm03.openstack.suying ansible_host=10.1.10.52
