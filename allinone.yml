@@ -1,20 +1,24 @@
 ---
 - name: Env_init
+  serial: 1
   hosts: ceph_nodes
   roles:
     - env_init
 
 - name: Run bootstrap on the first monitor node
+  serial: 2
   hosts: ceph_bootstrap
   roles:
     - run_bootstrap
 
 - name: Add hosts to the cluster
-  hosts: new_add_ceph_nodes
+  serial: 3
+  hosts: ceph_bootstrap,new_add_ceph_nodes
   roles:
     - add_host
 
 - name: Add storage to the cluster
+  serial: 4
   hosts: ceph_bootstrap
   roles:
     - add_storage

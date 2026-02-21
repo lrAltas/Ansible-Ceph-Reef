@@ -1,6 +1,22 @@
 ---
-- name: Add all available devices to Ceph
-  ansible.builtin.command:
-    cmd: "ceph orch apply osd --all-available-devices"
-  when: inventory_hostname in groups['ceph_bootstrap']
-  changed_when: false
+- name: Add osds label to all in new_add_ceph_nodes
+  ceph.automation.ceph_orch_host:
+    name: "{{ item | split('.') | first }}"
+    address: "{{ hostvars[item]['ansible_host'] }}"   # 從 inventory 取 IP
+    # address: "{{ hostvars[item].ansible_default_ipv4.address }}"  # 另一種取法
+    labels:
+      - osds
+    state: present
+  loop: "{{ groups['OSD'] }}"          # 直接 loop 整個群組
+
+- name: Apply OSD service with all available devices (official example style)
+  ceph.automation.ceph_orch_apply:
+    spec: |
+      service_type: osd
+      service_id: osd
+      placement:
+        label: osds               # 官方示例原样，如果你主机有这个标签
+      spec:
+        data_devices:
+          all: true
+  delegate_to: "{{ groups['ceph_bootstrap'][0] }}"

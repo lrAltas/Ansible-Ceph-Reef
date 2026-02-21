@@ -2,15 +2,24 @@
 # 这个安装ssh key 是安装进行了bootstrap的节点的ssh key到其他需要添加进来的主机上
 - name: Install SSH Key
   block:
-    - name: Install SSH Key by command module
-      ansible.builtin.command:
-        cmd: ssh-copy-id -f -i /etc/ceph/ceph.pub root@{{ item }}
-      loop: "{{ groups['new_add_ceph_nodes'] }}"
-      args:
-        creates: "{{ add_host_tasks_mark_file_path.ssh_key_installed_mark_file }}"
+    - name: Read ceph.pub from ceph01 (only once)
+      ansible.builtin.slurp:
+        src: /etc/ceph/ceph.pub
+      register: add_host_ceph_pub_content
+      run_once: true
+      delegate_to: "{{ groups['ceph_bootstrap'][0] }}"       # 強制從 ceph01 讀取檔案內容
 
-    - name: Create mark file to indicate SSH key installation is done
-      ansible.builtin.file:
-        path: "{{ add_host_tasks_mark_file_path.ssh_key_installed_mark_file }}"
-        state: touch
-        mode: '0644'
+    - name: Decode and set fact for pubkey content
+      ansible.builtin.set_fact:
+        add_host_ceph_pub_key: "{{ add_host_ceph_pub_content['content'] | b64decode }}"
+      run_once: true
+
+    - name: Add the pubkey to root authorized_keys on this host
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ add_host_ceph_pub_key }}"
+        # path: /root/.ssh/authorized_keys   # 可選，如果想明確指定
+        # exclusive: false                   # 保留原有其他 key
+      when: "'new_add_ceph_nodes' in group_names"
+      # 避免在 ceph01 自己加自己（可選）

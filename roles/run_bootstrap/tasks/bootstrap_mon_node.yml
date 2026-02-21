@@ -2,3 +2,5 @@
 - name: Run Cephadm Bootstrap
   ceph.automation.cephadm_bootstrap:
     mon_ip: "{{ ansible_host }}"
+    initial_dashboard_user: "admin"
+    initial_dashboard_password: "000000"

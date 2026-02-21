@@ -1,3 +1,5 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # vars file for roles/add_storage
+add_storage_mark_dir_path: ./root/mark
+add_storage_mark_file_path: "{{ add_storage_mark_dir_path }}/add_storage_success.mark"

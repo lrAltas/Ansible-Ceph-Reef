@@ -8,3 +8,8 @@
   ansible.builtin.dnf:
     name: "{{ env_init_cephadm_packages }}"
     state: present
+
+- name: Install Ceph-common package
+  ansible.builtin.dnf:
+    name: "{{ env_init_cephcommon_packages }}"
+    state: present

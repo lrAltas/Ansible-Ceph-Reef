@@ -16,6 +16,9 @@ cephadm02.openstack.suying
 cephadm03.openstack.suying
 
 [OSD]
+cephadm01.openstack.suying
+cephadm02.openstack.suying
+cephadm03.openstack.suying
 
 [dns_server]
 dns.openstack.suying ansible_host=10.1.10.2

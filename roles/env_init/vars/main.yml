@@ -27,3 +27,7 @@ env_init_ceph_release_packages: centos-release-ceph-reef
 env_init_cephadm_packages:
   - cephadm
   - podman
+  - epel-release
+
+env_init_cephcommon_packages:
+  - ceph-common
