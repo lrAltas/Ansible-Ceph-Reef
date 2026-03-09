@@ -4,3 +4,4 @@
     mon_ip: "{{ ansible_host }}"
     initial_dashboard_user: "admin"
     initial_dashboard_password: "000000"
+    image: quay.io/ceph/ceph:v18.2.7

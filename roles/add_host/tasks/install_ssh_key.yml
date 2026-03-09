@@ -7,7 +7,7 @@
         src: /etc/ceph/ceph.pub
       register: add_host_ceph_pub_content
       run_once: true
-      delegate_to: "{{ groups['ceph_bootstrap'][0] }}"       # 強制從 ceph01 讀取檔案內容
+      delegate_to: "{{ groups['ceph_bootstrap'][0] }}"
 
     - name: Decode and set fact for pubkey content
       ansible.builtin.set_fact:
@@ -19,7 +19,6 @@
         user: root
         state: present
         key: "{{ add_host_ceph_pub_key }}"
-        # path: /root/.ssh/authorized_keys   # 可選，如果想明確指定
-        # exclusive: false                   # 保留原有其他 key
+        # path: /root/.ssh/authorized_keys
+        # exclusive: false
       when: "'new_add_ceph_nodes' in group_names"
-      # 避免在 ceph01 自己加自己（可選）

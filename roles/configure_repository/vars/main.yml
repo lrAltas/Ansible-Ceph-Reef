@@ -1,0 +1,94 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/configure_repository
+configure_repository_mark_dir_path: /root/.marks
+configure_repository_mark_file_path: "{{ configure_repository_mark_dir_path }}/configure_repository_done.mark"
+
+configure_repository_repos:
+  - name: baseos
+    description: XinWenYunTu Local Repository - BaseOS
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/BaseOS/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: appstream
+    description: XinWenYunTu Local Repository - AppStream
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/AppStream/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: extras
+    description: XinWenYunTu Local Repository - Extras
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/Extras_Packages/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: epel
+    description: XinWenYunTu Local Repository - EPEL
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/epel-release/epel/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: epel-cisco-openh264
+    description: XinWenYunTu Local Repository - epel-cisco-openh264
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/epel-release/epel-cisco-openh264/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: epel-next
+    description: XinWenYunTu Local Repository - epel-next
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/epel-release/epel-next/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: openstack-dalmatian
+    description: XinWenYunTu Local Repository - OpenStack Dalmatian
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/cloud_repository/CentOS-OpenStack-Dalmatian/OpenStack-Dalmatian/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: ceph-reef
+    description: XinWenYunTu Local Repository - Ceph Reef
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/cloud_repository/CentOS-OpenStack-Dalmatian/Ceph-Reef/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: nfv-openvswitch
+    description: XinWenYunTu Local Repository - NFV OpenvSwitch
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/cloud_repository/CentOS-OpenStack-Dalmatian/NFV-OpenvSwitch/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: crb
+    description: XinWenYunTu Local Repository - CRB Repository
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/CRB/x86_64/os/
+    enabled: true
+    gpgcheck: false
+
+  - name: modern-erlang
+    description: XinWenYunTu Local Repository - Modern Erlang
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/RabbitMQ/x86_64/os/modern-erlang/
+    enabled: true
+    gpgcheck: false
+
+  - name: modern-erlang-noarch
+    description: XinWenYunTu Local Repository - Modern Erlang Noarch
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/RabbitMQ/x86_64/os/modern-erlang-noarch/
+    enabled: true
+    gpgcheck: false
+
+  - name: rabbitmq-el9
+    description: XinWenYunTu Local Repository - RabbitMQ EL9
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/RabbitMQ/x86_64/os/rabbitmq-el9/
+    enabled: true
+    gpgcheck: false
+
+  - name: rabbitmq-el9-noarch
+    description: XinWenYunTu Local Repository - RabbitMQ EL9 Noarch
+    baseurl: http://10.1.10.10/xw_local_repository/centos/9-stream/RabbitMQ/x86_64/os/rabbitmq-el9-noarch/
+    enabled: true
+    gpgcheck: false
+
+  # ←←← 继续在这里添加你所有的本地源
+  # 字段严格按照你指定的：description、baseurl、enabled、gpgcheck
+  # （name 是仓库唯一ID，必须保留）

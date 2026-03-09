@@ -1,0 +1,10 @@
+---
+- name: Copy Cephadm Bootstrap Image to the monitor node
+  ansible.builtin.copy:
+    src: "{{ run_bootstrap_src_image_path }}"
+    dest: "{{ run_bootstrap_dest_image_path }}"
+    mode: '0644'
+
+- name: Load Cephadm Bootstrap Image on the monitor node
+  containers.podman.podman_load:
+    input: "{{ run_bootstrap_dest_image_path }}"         # 远程路径

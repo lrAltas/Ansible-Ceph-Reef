@@ -18,6 +18,10 @@
       ansible.builtin.meta: end_role
       when: run_bootstrap_mark_file.stat.exists
 
+- name: Import Cephadm Bootstrap Image
+  ansible.builtin.import_tasks: import_image.yml
+  tags: import_image
+
 - name: Run Cephadm Bootstrap
   ansible.builtin.import_tasks: bootstrap_mon_node.yml
   tags: bootstrap_mon_node

@@ -3,3 +3,8 @@
 # vars file for roles/run_bootstrap
 run_bootstrap_mark_dir_path: ./root/mark
 run_bootstrap_mark_file_path: "{{ run_bootstrap_mark_dir_path }}/bootstrap_success.mark"
+
+run_bootstrap_src_image_path: files/ceph-v18.2.7.tar
+run_bootstrap_dest_image_path: /root/ceph-v18.2.7.tar
+
+run_bootstrap_ceph_image: quay.io/ceph/ceph:v18.2.7
