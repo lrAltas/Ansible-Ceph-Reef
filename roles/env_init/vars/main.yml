@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # vars file for roles/env_init
-env_init_mark_dir_path: ./root/marks
+env_init_mark_dir_path: /root/.marks
 env_init_mark_file_path: "{{ env_init_mark_dir_path }}/env_init_success.mark"
 
 
