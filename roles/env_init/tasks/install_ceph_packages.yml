@@ -12,6 +12,12 @@
         state: present
       when: not env_init_local_repo_mark.stat.exists
 
+    - name: Install EPEL release package
+      ansible.builtin.dnf:
+        name: "{{ env_init_epel_release_packages }}"
+        state: present
+      when: not env_init_local_repo_mark.stat.exists
+
 - name: Install Cephadm and Podman
   ansible.builtin.dnf:
     name: "{{ env_init_cephadm_packages }}"

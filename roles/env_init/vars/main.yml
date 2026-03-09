@@ -26,10 +26,10 @@ env_init_custom_ntp_conf_backup_path: "{{ env_init_custom_ntp_backup_dir }}/chro
 env_init_connection_name: "enp1s0"
 
 env_init_ceph_release_packages: centos-release-ceph-reef
+env_init_epel_release_packages: epel-release
 env_init_cephadm_packages:
   - cephadm
   - podman
-  - epel-release
 
 env_init_cephcommon_packages:
   - ceph-common
