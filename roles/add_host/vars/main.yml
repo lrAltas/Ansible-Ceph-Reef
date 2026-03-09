@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # vars file for roles/add_host
-add_host_mark_dir_path: ./root/mark
+add_host_mark_dir_path: ./root/marks
 add_host_mark_file_path: "{{ add_host_mark_dir_path }}/add_host_success.mark"
 
 add_host_tasks_mark_file_path:
